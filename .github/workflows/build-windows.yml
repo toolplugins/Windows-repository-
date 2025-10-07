@@ -1,0 +1,34 @@
+name: Build Windows exe (mingw)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+
+      - name: Install mingw-w64 toolchain
+        shell: msys2 {0}
+        run: |
+          pacman -Sy --noconfirm mingw-w64-x86_64-gcc
+
+      - name: Build server.exe
+        shell: msys2 {0}
+        run: |
+          x86_64-w64-mingw32-gcc -O2 -Wall -o server.exe server.c -lws2_32
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-windows-exe
+          path: server.exe
